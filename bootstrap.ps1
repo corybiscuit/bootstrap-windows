@@ -11,22 +11,12 @@
     - Installing predefined sets of applications
     - Configuring basic system settings
 
-.PARAMETER SkipScoop
-    Skip Scoop installation and CLI applications
-
-.PARAMETER SkipWinGet
-    Skip WinGet installation and GUI applications
-
 .PARAMETER ConfigPath
     Path to custom configuration files directory (default: ./config)
 
 .EXAMPLE
     .\bootstrap.ps1
-    Run full bootstrap with default settings
-
-.EXAMPLE
-    .\bootstrap.ps1 -SkipScoop
-    Run bootstrap but skip Scoop and CLI applications
+    Run interactive bootstrap with prompts for component selection
 
 .EXAMPLE
     .\bootstrap.ps1 -ConfigPath "C:\custom\config"
@@ -34,8 +24,6 @@
 #>
 
 param(
-    [switch]$SkipScoop,
-    [switch]$SkipWinGet,
     [string]$ConfigPath = ".\config"
 )
 
@@ -63,8 +51,33 @@ try {
     $LogFile = Join-Path $LogDir "bootstrap-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
     Start-Transcript -Path $LogFile -Append
 
+    # Interactive component selection
+    Write-BootstrapInfo "`nBootstrap Component Selection"
+    Write-Host "This bootstrap can install the following components:" -ForegroundColor White
+    Write-Host "  1. Scoop - CLI-based applications (git, node, python, docker, etc.)" -ForegroundColor Gray
+    Write-Host "  2. WinGet - GUI applications (browsers, productivity tools, etc.)" -ForegroundColor Gray
+    Write-Host ""
+    
+    # Ask about Scoop
+    $installScoop = $true
+    $scoopResponse = Read-Host "Install Scoop and CLI applications? (Y/n)"
+    if ($scoopResponse -like "n*") {
+        $installScoop = $false
+        Write-BootstrapInfo "Scoop installation will be skipped"
+    }
+    
+    # Ask about WinGet
+    $installWinGet = $true
+    $wingetResponse = Read-Host "Install WinGet and GUI applications? (Y/n)"
+    if ($wingetResponse -like "n*") {
+        $installWinGet = $false
+        Write-BootstrapInfo "WinGet installation will be skipped"
+    }
+    
+    Write-Host ""
+
     # Install and configure Scoop (CLI applications)
-    if (-not $SkipScoop) {
+    if ($installScoop) {
         Write-BootstrapInfo "Setting up Scoop and CLI applications..."
         & ".\scripts\setup-scoop.ps1" -ConfigPath $ConfigPath
         if ($LASTEXITCODE -ne 0) {
@@ -75,7 +88,7 @@ try {
     }
 
     # Install and configure WinGet (GUI applications)
-    if (-not $SkipWinGet) {
+    if ($installWinGet) {
         Write-BootstrapInfo "Setting up WinGet and GUI applications..."
         & ".\scripts\setup-winget.ps1" -ConfigPath $ConfigPath
         if ($LASTEXITCODE -ne 0) {

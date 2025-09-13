@@ -30,24 +30,22 @@ A comprehensive set of scripts designed to configure and install applications on
    .\bootstrap.ps1
    ```
 
-That's it! The script will handle the rest automatically.
+The script will guide you through an interactive setup where you can choose which components to install.
 
 ## Usage Options
 
-### Basic Usage
+### Interactive Bootstrap
 ```powershell
-# Full bootstrap with all applications
+# Interactive setup with component selection prompts
 .\bootstrap.ps1
-
-# Skip Scoop and CLI applications
-.\bootstrap.ps1 -SkipScoop
-
-# Skip WinGet and GUI applications
-.\bootstrap.ps1 -SkipWinGet
 
 # Use custom configuration path
 .\bootstrap.ps1 -ConfigPath "C:\custom\config"
 ```
+
+The bootstrap script will prompt you to choose which components to install:
+- **Scoop and CLI applications** - Development tools, utilities, command-line programs
+- **WinGet and GUI applications** - Browsers, productivity software, graphical programs
 
 ### Individual Components
 You can also run individual setup scripts:
