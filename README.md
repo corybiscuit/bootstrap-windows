@@ -12,6 +12,8 @@ A comprehensive set of scripts designed to configure and install applications on
 - 📦 **Curated Applications**: Predefined sets of essential, development, and productivity applications
 - ⚙️ **Configurable**: Customizable application lists via JSON configuration files
 - 🎯 **Categorized**: Applications organized into logical categories (browsers, development, utilities, etc.)
+- 🎨 **Interactive Selection**: Choose categories and exclude specific apps through user-friendly prompts
+- 🔍 **Application Preview**: See all applications in each category before installation
 - 🔧 **Error Handling**: Robust error handling and user feedback
 - 📋 **Logging**: Detailed logging for troubleshooting
 
@@ -30,22 +32,53 @@ A comprehensive set of scripts designed to configure and install applications on
    .\bootstrap.ps1
    ```
 
-The script will guide you through an interactive setup where you can choose which components to install.
+The script will guide you through an interactive setup where you can:
+- Choose which package managers to use (Scoop, WinGet, or both)
+- Select specific application categories to install
+- Preview all applications in each category
+- Exclude specific applications you don't want
+
+## Interactive Selection Process
+
+The bootstrap now provides a guided experience:
+
+### 1. Package Manager Selection
+Choose which package managers to install:
+- **Scoop** for CLI applications (git, nodejs, python, docker, etc.)
+- **WinGet** for GUI applications (browsers, productivity tools, etc.)
+
+### 2. Category Selection
+For each chosen package manager, select from available categories:
+
+**Scoop Categories:**
+- `essential` - Core development tools (git, curl, nodejs, python)
+- `development` - Advanced dev tools (docker, terraform, kubectl, helm)
+- `utilities` - Command-line utilities (grep, jq, ripgrep, bat)
+- `optional` - Additional tools (ffmpeg, imagemagick, go, rust)
+
+**WinGet Categories:**
+- `browsers` - Web browsers (Chrome, Firefox, Edge)
+- `productivity` - Productivity apps (Adobe Reader, Notion, PowerToys)
+- `development` - Development GUIs (VS Code, Postman, Docker Desktop)
+- `utilities` - System utilities (7-Zip, VLC, WinDirStat)
+- `communication` - Communication tools (Teams, Slack, Discord, Zoom)
+
+### 3. Application Refinement
+For each selected category, you can:
+- **Install all applications** (press ENTER)
+- **Exclude specific applications** (type numbers to remove, e.g., "2,5,7")
+- **Skip the entire category** (type "skip")
 
 ## Usage Options
 
 ### Interactive Bootstrap
 ```powershell
-# Interactive setup with component selection prompts
+# Interactive setup with category and app selection
 .\bootstrap.ps1
 
 # Use custom configuration path
 .\bootstrap.ps1 -ConfigPath "C:\custom\config"
 ```
-
-The bootstrap script will prompt you to choose which components to install:
-- **Scoop and CLI applications** - Development tools, utilities, command-line programs
-- **WinGet and GUI applications** - Browsers, productivity software, graphical programs
 
 ### Individual Components
 You can also run individual setup scripts:
