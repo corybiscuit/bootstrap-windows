@@ -56,7 +56,12 @@ try {
     $LogDir = ".\logs"
     if (-not (Test-Path $LogDir)) {
         New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+        Write-BootstrapInfo "Created logs directory: $LogDir"
     }
+    
+    # Start logging
+    $LogFile = Join-Path $LogDir "bootstrap-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+    Start-Transcript -Path $LogFile -Append
 
     # Install and configure Scoop (CLI applications)
     if (-not $SkipScoop) {
@@ -82,8 +87,27 @@ try {
 
     Write-BootstrapSuccess "Bootstrap completed successfully!"
     Write-BootstrapInfo "You may need to restart your computer to complete some installations."
+    
+    # Offer to setup PowerShell profile
+    Write-BootstrapInfo "`nOptional: Would you like to setup a PowerShell profile with useful aliases and functions?"
+    $response = Read-Host "Setup PowerShell profile? (Y/n)"
+    if ($response -notlike "n*") {
+        try {
+            & ".\scripts\setup-profile.ps1"
+        } catch {
+            Write-BootstrapWarning "Profile setup failed, but this doesn't affect the main bootstrap"
+        }
+    }
+    
+    # Stop logging
+    Stop-Transcript
+    Write-BootstrapInfo "Full log saved to: $LogFile"
 
 } catch {
     Write-BootstrapError "Bootstrap failed: $($_.Exception.Message)"
+    
+    # Stop logging even on error
+    try { Stop-Transcript } catch { }
+    
     exit 1
 }

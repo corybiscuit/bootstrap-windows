@@ -53,11 +53,20 @@ That's it! The script will handle the rest automatically.
 You can also run individual setup scripts:
 
 ```powershell
+# Check prerequisites before running bootstrap
+.\check-prerequisites.ps1
+
 # Setup only Scoop and CLI applications
 .\scripts\setup-scoop.ps1
 
 # Setup only WinGet and GUI applications
 .\scripts\setup-winget.ps1
+
+# Setup PowerShell profile with useful aliases
+.\scripts\setup-profile.ps1
+
+# Test configuration files and structure
+.\test-structure.ps1
 ```
 
 ## Application Categories
@@ -145,16 +154,20 @@ Check the `logs/` directory for detailed installation logs and error messages.
 
 ```
 bootstrap-windows/
-├── bootstrap.ps1              # Main bootstrap script
+├── bootstrap.ps1                 # Main bootstrap script
+├── check-prerequisites.ps1       # Prerequisites verification script  
+├── test-structure.ps1            # Configuration validation script
 ├── scripts/
-│   ├── utilities.ps1          # Common utility functions
-│   ├── setup-scoop.ps1        # Scoop setup and CLI apps
-│   └── setup-winget.ps1       # WinGet setup and GUI apps
+│   ├── utilities.ps1             # Common utility functions
+│   ├── setup-scoop.ps1           # Scoop setup and CLI apps
+│   ├── setup-winget.ps1          # WinGet setup and GUI apps
+│   └── setup-profile.ps1         # PowerShell profile configuration
 ├── config/
-│   ├── scoop-apps.json        # Scoop applications configuration
-│   └── winget-apps.json       # WinGet applications configuration
-├── logs/                      # Log files (created during execution)
-└── README.md                  # This file
+│   ├── scoop-apps.json           # Scoop applications configuration
+│   ├── winget-apps.json          # WinGet applications configuration
+│   └── README.md                 # Configuration help
+├── logs/                         # Log files (created during execution)
+└── README.md                     # This file
 ```
 
 ## Contributing
