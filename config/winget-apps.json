@@ -1,0 +1,96 @@
+{
+  "browsers": [
+    {
+      "id": "Google.Chrome",
+      "name": "Google Chrome"
+    },
+    {
+      "id": "Mozilla.Firefox",
+      "name": "Mozilla Firefox"
+    },
+    {
+      "id": "Microsoft.Edge",
+      "name": "Microsoft Edge"
+    }
+  ],
+  "productivity": [
+    {
+      "id": "Adobe.Acrobat.Reader.64-bit",
+      "name": "Adobe Acrobat Reader"
+    },
+    {
+      "id": "Notion.Notion",
+      "name": "Notion"
+    },
+    {
+      "id": "Obsidian.Obsidian",
+      "name": "Obsidian"
+    },
+    {
+      "id": "Microsoft.PowerToys",
+      "name": "Microsoft PowerToys"
+    }
+  ],
+  "development": [
+    {
+      "id": "Microsoft.VisualStudioCode",
+      "name": "Visual Studio Code"
+    },
+    {
+      "id": "JetBrains.IntelliJIDEA.Community",
+      "name": "IntelliJ IDEA Community"
+    },
+    {
+      "id": "Postman.Postman",
+      "name": "Postman"
+    },
+    {
+      "id": "Docker.DockerDesktop",
+      "name": "Docker Desktop"
+    },
+    {
+      "id": "Microsoft.WindowsTerminal",
+      "name": "Windows Terminal"
+    },
+    {
+      "id": "Git.Git",
+      "name": "Git for Windows"
+    }
+  ],
+  "utilities": [
+    {
+      "id": "7zip.7zip",
+      "name": "7-Zip"
+    },
+    {
+      "id": "VideoLAN.VLC",
+      "name": "VLC Media Player"
+    },
+    {
+      "id": "Spotify.Spotify",
+      "name": "Spotify"
+    },
+    {
+      "id": "WinDirStat.WinDirStat",
+      "name": "WinDirStat"
+    }
+  ],
+  "communication": [
+    {
+      "id": "Microsoft.Teams",
+      "name": "Microsoft Teams"
+    },
+    {
+      "id": "SlackTechnologies.Slack",
+      "name": "Slack"
+    },
+    {
+      "id": "Discord.Discord",
+      "name": "Discord"
+    },
+    {
+      "id": "Zoom.Zoom",
+      "name": "Zoom"
+    }
+  ]
+}
