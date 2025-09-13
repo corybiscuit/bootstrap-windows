@@ -8,10 +8,14 @@
 
 .PARAMETER ConfigPath
     Path to configuration files directory (default: ./config)
+
+.PARAMETER SelectedCategories
+    Hashtable of selected categories and their apps (optional)
 #>
 
 param(
-    [string]$ConfigPath = ".\config"
+    [string]$ConfigPath = ".\config",
+    [hashtable]$SelectedCategories = @{}
 )
 
 # Import utility functions
@@ -53,49 +57,63 @@ try {
         }
     }
 
-    # Load CLI applications configuration
-    $CliAppsFile = Join-Path $ConfigPath "scoop-apps.json"
-    if (Test-Path $CliAppsFile) {
-        Write-BootstrapInfo "Loading CLI applications from: $CliAppsFile"
-        $CliApps = Get-Content $CliAppsFile | ConvertFrom-Json
+    # Determine which applications to install
+    $AppsToInstall = @{}
+    
+    if ($SelectedCategories.Count -gt 0) {
+        Write-BootstrapInfo "Using user-selected categories and applications"
+        $AppsToInstall = $SelectedCategories
     } else {
-        Write-BootstrapInfo "Using default CLI applications list"
-        $CliApps = @{
-            "essential" = @(
-                "git",
-                "curl",
-                "wget",
-                "7zip",
-                "nodejs",
-                "python",
-                "vim"
-            )
-            "development" = @(
-                "vscode",
-                "docker",
-                "terraform",
-                "azure-cli",
-                "aws",
-                "kubectl",
-                "helm"
-            )
-            "utilities" = @(
-                "grep",
-                "sed",
-                "jq",
-                "yq",
-                "tree",
-                "which",
-                "touch"
-            )
+        # Load CLI applications configuration
+        $CliAppsFile = Join-Path $ConfigPath "scoop-apps.json"
+        if (Test-Path $CliAppsFile) {
+            Write-BootstrapInfo "Loading CLI applications from: $CliAppsFile"
+            $CliApps = Get-Content $CliAppsFile | ConvertFrom-Json
+            
+            # Convert to hashtable for consistent processing
+            foreach ($category in $CliApps.PSObject.Properties.Name) {
+                $AppsToInstall[$category] = $CliApps.$category
+            }
+        } else {
+            Write-BootstrapInfo "Using default CLI applications list"
+            $AppsToInstall = @{
+                "essential" = @(
+                    "git",
+                    "curl",
+                    "wget",
+                    "7zip",
+                    "nodejs",
+                    "python",
+                    "vim"
+                )
+                "development" = @(
+                    "vscode",
+                    "docker",
+                    "terraform",
+                    "azure-cli",
+                    "aws",
+                    "kubectl",
+                    "helm"
+                )
+                "utilities" = @(
+                    "grep",
+                    "sed",
+                    "jq",
+                    "yq",
+                    "tree",
+                    "which",
+                    "touch"
+                )
+            }
         }
     }
 
     # Install applications by category
-    foreach ($category in $CliApps.PSObject.Properties.Name) {
-        Write-BootstrapInfo "Installing $category applications..."
+    foreach ($category in $AppsToInstall.Keys) {
+        $apps = $AppsToInstall[$category]
+        Write-BootstrapInfo "Installing $category applications ($($apps.Count) apps)..."
         
-        foreach ($app in $CliApps.$category) {
+        foreach ($app in $apps) {
             try {
                 Write-BootstrapInfo "Installing: $app"
                 scoop install $app

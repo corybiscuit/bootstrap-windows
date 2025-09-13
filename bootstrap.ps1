@@ -60,18 +60,46 @@ try {
     
     # Ask about Scoop
     $installScoop = $true
+    $selectedScoopCategories = @{}
     $scoopResponse = Read-Host "Install Scoop and CLI applications? (Y/n)"
     if ($scoopResponse -like "n*") {
         $installScoop = $false
         Write-BootstrapInfo "Scoop installation will be skipped"
+    } else {
+        # Load Scoop configuration and get user selections
+        $ScoopAppsFile = Join-Path $ConfigPath "scoop-apps.json"
+        if (Test-Path $ScoopAppsFile) {
+            $ScoopApps = Get-Content $ScoopAppsFile | ConvertFrom-Json
+            $selectedScoopCategories = Get-SelectedCategories -AllCategories $ScoopApps -PackageManager "Scoop"
+            if ($selectedScoopCategories.Count -eq 0) {
+                $installScoop = $false
+            }
+        } else {
+            Write-BootstrapWarning "Scoop configuration file not found: $ScoopAppsFile"
+            Write-BootstrapInfo "Will use default configuration"
+        }
     }
     
     # Ask about WinGet
     $installWinGet = $true
+    $selectedWinGetCategories = @{}
     $wingetResponse = Read-Host "Install WinGet and GUI applications? (Y/n)"
     if ($wingetResponse -like "n*") {
         $installWinGet = $false
         Write-BootstrapInfo "WinGet installation will be skipped"
+    } else {
+        # Load WinGet configuration and get user selections
+        $WinGetAppsFile = Join-Path $ConfigPath "winget-apps.json"
+        if (Test-Path $WinGetAppsFile) {
+            $WinGetApps = Get-Content $WinGetAppsFile | ConvertFrom-Json
+            $selectedWinGetCategories = Get-SelectedCategories -AllCategories $WinGetApps -PackageManager "WinGet"
+            if ($selectedWinGetCategories.Count -eq 0) {
+                $installWinGet = $false
+            }
+        } else {
+            Write-BootstrapWarning "WinGet configuration file not found: $WinGetAppsFile"
+            Write-BootstrapInfo "Will use default configuration"
+        }
     }
     
     Write-Host ""
@@ -79,7 +107,11 @@ try {
     # Install and configure Scoop (CLI applications)
     if ($installScoop) {
         Write-BootstrapInfo "Setting up Scoop and CLI applications..."
-        & ".\scripts\setup-scoop.ps1" -ConfigPath $ConfigPath
+        if ($selectedScoopCategories.Count -gt 0) {
+            & ".\scripts\setup-scoop.ps1" -ConfigPath $ConfigPath -SelectedCategories $selectedScoopCategories
+        } else {
+            & ".\scripts\setup-scoop.ps1" -ConfigPath $ConfigPath
+        }
         if ($LASTEXITCODE -ne 0) {
             throw "Scoop setup failed with exit code $LASTEXITCODE"
         }
@@ -90,7 +122,11 @@ try {
     # Install and configure WinGet (GUI applications)
     if ($installWinGet) {
         Write-BootstrapInfo "Setting up WinGet and GUI applications..."
-        & ".\scripts\setup-winget.ps1" -ConfigPath $ConfigPath
+        if ($selectedWinGetCategories.Count -gt 0) {
+            & ".\scripts\setup-winget.ps1" -ConfigPath $ConfigPath -SelectedCategories $selectedWinGetCategories
+        } else {
+            & ".\scripts\setup-winget.ps1" -ConfigPath $ConfigPath
+        }
         if ($LASTEXITCODE -ne 0) {
             throw "WinGet setup failed with exit code $LASTEXITCODE"
         }

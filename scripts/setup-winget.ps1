@@ -8,10 +8,14 @@
 
 .PARAMETER ConfigPath
     Path to configuration files directory (default: ./config)
+
+.PARAMETER SelectedCategories
+    Hashtable of selected categories and their apps (optional)
 #>
 
 param(
-    [string]$ConfigPath = ".\config"
+    [string]$ConfigPath = ".\config",
+    [hashtable]$SelectedCategories = @{}
 )
 
 # Import utility functions
@@ -63,48 +67,62 @@ try {
     Write-BootstrapInfo "Accepting WinGet source agreements..."
     winget list --accept-source-agreements | Out-Null
 
-    # Load GUI applications configuration
-    $GuiAppsFile = Join-Path $ConfigPath "winget-apps.json"
-    if (Test-Path $GuiAppsFile) {
-        Write-BootstrapInfo "Loading GUI applications from: $GuiAppsFile"
-        $GuiApps = Get-Content $GuiAppsFile | ConvertFrom-Json
+    # Determine which applications to install
+    $AppsToInstall = @{}
+    
+    if ($SelectedCategories.Count -gt 0) {
+        Write-BootstrapInfo "Using user-selected categories and applications"
+        $AppsToInstall = $SelectedCategories
     } else {
-        Write-BootstrapInfo "Using default GUI applications list"
-        $GuiApps = @{
-            "browsers" = @(
-                @{ id = "Google.Chrome"; name = "Google Chrome" },
-                @{ id = "Mozilla.Firefox"; name = "Mozilla Firefox" }
-            )
-            "productivity" = @(
-                @{ id = "Microsoft.Office"; name = "Microsoft Office" },
-                @{ id = "Adobe.Acrobat.Reader.64-bit"; name = "Adobe Acrobat Reader" },
-                @{ id = "Notion.Notion"; name = "Notion" }
-            )
-            "development" = @(
-                @{ id = "Microsoft.VisualStudioCode"; name = "Visual Studio Code" },
-                @{ id = "JetBrains.IntelliJIDEA.Community"; name = "IntelliJ IDEA Community" },
-                @{ id = "Postman.Postman"; name = "Postman" },
-                @{ id = "Docker.DockerDesktop"; name = "Docker Desktop" }
-            )
-            "utilities" = @(
-                @{ id = "7zip.7zip"; name = "7-Zip" },
-                @{ id = "WinRAR.WinRAR"; name = "WinRAR" },
-                @{ id = "VideoLAN.VLC"; name = "VLC Media Player" },
-                @{ id = "Spotify.Spotify"; name = "Spotify" }
-            )
-            "communication" = @(
-                @{ id = "Microsoft.Teams"; name = "Microsoft Teams" },
-                @{ id = "SlackTechnologies.Slack"; name = "Slack" },
-                @{ id = "Discord.Discord"; name = "Discord" }
-            )
+        # Load GUI applications configuration
+        $GuiAppsFile = Join-Path $ConfigPath "winget-apps.json"
+        if (Test-Path $GuiAppsFile) {
+            Write-BootstrapInfo "Loading GUI applications from: $GuiAppsFile"
+            $GuiApps = Get-Content $GuiAppsFile | ConvertFrom-Json
+            
+            # Convert to hashtable for consistent processing
+            foreach ($category in $GuiApps.PSObject.Properties.Name) {
+                $AppsToInstall[$category] = $GuiApps.$category
+            }
+        } else {
+            Write-BootstrapInfo "Using default GUI applications list"
+            $AppsToInstall = @{
+                "browsers" = @(
+                    @{ id = "Google.Chrome"; name = "Google Chrome" },
+                    @{ id = "Mozilla.Firefox"; name = "Mozilla Firefox" }
+                )
+                "productivity" = @(
+                    @{ id = "Microsoft.Office"; name = "Microsoft Office" },
+                    @{ id = "Adobe.Acrobat.Reader.64-bit"; name = "Adobe Acrobat Reader" },
+                    @{ id = "Notion.Notion"; name = "Notion" }
+                )
+                "development" = @(
+                    @{ id = "Microsoft.VisualStudioCode"; name = "Visual Studio Code" },
+                    @{ id = "JetBrains.IntelliJIDEA.Community"; name = "IntelliJ IDEA Community" },
+                    @{ id = "Postman.Postman"; name = "Postman" },
+                    @{ id = "Docker.DockerDesktop"; name = "Docker Desktop" }
+                )
+                "utilities" = @(
+                    @{ id = "7zip.7zip"; name = "7-Zip" },
+                    @{ id = "WinRAR.WinRAR"; name = "WinRAR" },
+                    @{ id = "VideoLAN.VLC"; name = "VLC Media Player" },
+                    @{ id = "Spotify.Spotify"; name = "Spotify" }
+                )
+                "communication" = @(
+                    @{ id = "Microsoft.Teams"; name = "Microsoft Teams" },
+                    @{ id = "SlackTechnologies.Slack"; name = "Slack" },
+                    @{ id = "Discord.Discord"; name = "Discord" }
+                )
+            }
         }
     }
 
     # Install applications by category
-    foreach ($category in $GuiApps.PSObject.Properties.Name) {
-        Write-BootstrapInfo "Installing $category applications..."
+    foreach ($category in $AppsToInstall.Keys) {
+        $apps = $AppsToInstall[$category]
+        Write-BootstrapInfo "Installing $category applications ($($apps.Count) apps)..."
         
-        foreach ($app in $GuiApps.$category) {
+        foreach ($app in $apps) {
             try {
                 $appId = if ($app -is [string]) { $app } else { $app.id }
                 $appName = if ($app -is [string]) { $app } else { $app.name }
