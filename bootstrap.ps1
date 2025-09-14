@@ -54,9 +54,18 @@ try {
     # Interactive component selection
     Write-BootstrapInfo "`nBootstrap Component Selection"
     Write-Host "This bootstrap can install the following components:" -ForegroundColor White
-    Write-Host "  1. Scoop - CLI-based applications (git, node, python, docker, etc.)" -ForegroundColor Gray
-    Write-Host "  2. WinGet - GUI applications (browsers, productivity tools, etc.)" -ForegroundColor Gray
+    Write-Host "  1. Network Configuration - Set hostname, static IP, DNS, and gateway" -ForegroundColor Gray
+    Write-Host "  2. Scoop - CLI-based applications (git, node, python, docker, etc.)" -ForegroundColor Gray
+    Write-Host "  3. WinGet - GUI applications (browsers, productivity tools, etc.)" -ForegroundColor Gray
     Write-Host ""
+    
+    # Ask about Network Configuration
+    $configureNetwork = $true
+    $networkResponse = Read-Host "Configure network settings (hostname, static IP, DNS, gateway)? (Y/n)"
+    if ($networkResponse -like "n*") {
+        $configureNetwork = $false
+        Write-BootstrapInfo "Network configuration will be skipped"
+    }
     
     # Ask about Scoop
     $installScoop = $true
@@ -103,6 +112,17 @@ try {
     }
     
     Write-Host ""
+
+    # Configure Network Settings
+    if ($configureNetwork) {
+        Write-BootstrapInfo "Configuring network settings..."
+        & ".\scripts\setup-network.ps1" -ConfigPath $ConfigPath
+        if ($LASTEXITCODE -ne 0) {
+            Write-BootstrapWarning "Network configuration failed, but continuing with bootstrap..."
+        }
+    } else {
+        Write-BootstrapInfo "Skipping network configuration as requested"
+    }
 
     # Install and configure Scoop (CLI applications)
     if ($installScoop) {
