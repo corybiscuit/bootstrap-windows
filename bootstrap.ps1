@@ -116,9 +116,16 @@ try {
     # Configure Network Settings
     if ($configureNetwork) {
         Write-BootstrapInfo "Configuring network settings..."
-        & ".\scripts\setup-network.ps1" -ConfigPath $ConfigPath
-        if ($LASTEXITCODE -ne 0) {
-            Write-BootstrapWarning "Network configuration failed, but continuing with bootstrap..."
+        try {
+            & ".\scripts\setup-network.ps1" -ConfigPath $ConfigPath
+            if ($LASTEXITCODE -ne 0) {
+                Write-BootstrapWarning "Network configuration completed with warnings. Check the log for details."
+            } else {
+                Write-BootstrapSuccess "Network configuration completed successfully!"
+            }
+        } catch {
+            Write-BootstrapWarning "Network configuration failed: $($_.Exception.Message)"
+            Write-BootstrapInfo "Continuing with bootstrap process..."
         }
     } else {
         Write-BootstrapInfo "Skipping network configuration as requested"

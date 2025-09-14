@@ -36,12 +36,45 @@ param(
 
 Write-BootstrapHeader "Network Configuration Setup"
 
+function Test-HostnameValid {
+    <#
+    .SYNOPSIS
+        Validates if a hostname is valid according to Windows naming rules.
+    #>
+    param([string]$Hostname)
+    
+    # Windows hostname rules:
+    # - Must be 1-15 characters
+    # - Can contain letters, numbers, and hyphens
+    # - Cannot start or end with hyphen
+    # - Cannot contain special characters
+    
+    if ([string]::IsNullOrWhiteSpace($Hostname)) {
+        return $false
+    }
+    
+    if ($Hostname.Length -gt 15) {
+        return $false
+    }
+    
+    if ($Hostname -match '^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$') {
+        return $true
+    }
+    
+    return $false
+}
+
 function Set-ComputerHostname {
     <#
     .SYNOPSIS
         Sets the computer hostname.
     #>
     param([string]$NewHostname)
+    
+    # Validate hostname
+    if (-not (Test-HostnameValid $NewHostname)) {
+        throw "Invalid hostname: '$NewHostname'. Hostname must be 1-15 characters, contain only letters, numbers, and hyphens, and not start or end with hyphen."
+    }
     
     try {
         $currentHostname = $env:COMPUTERNAME
@@ -60,6 +93,21 @@ function Set-ComputerHostname {
     }
 }
 
+function Test-IPAddress {
+    <#
+    .SYNOPSIS
+        Validates if a string is a valid IP address.
+    #>
+    param([string]$IPAddress)
+    
+    try {
+        $null = [System.Net.IPAddress]::Parse($IPAddress)
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 function Set-StaticIPConfiguration {
     <#
     .SYNOPSIS
@@ -71,6 +119,20 @@ function Set-StaticIPConfiguration {
         [string]$Gateway,
         [string]$DNSServer
     )
+    
+    # Validate IP addresses
+    if (-not (Test-IPAddress $IPAddress)) {
+        throw "Invalid IP address format: $IPAddress"
+    }
+    if (-not (Test-IPAddress $SubnetMask)) {
+        throw "Invalid subnet mask format: $SubnetMask"
+    }
+    if ($Gateway -and -not (Test-IPAddress $Gateway)) {
+        throw "Invalid gateway address format: $Gateway"
+    }
+    if ($DNSServer -and -not (Test-IPAddress $DNSServer)) {
+        throw "Invalid DNS server address format: $DNSServer"
+    }
     
     try {
         # Get the primary network adapter
@@ -140,9 +202,24 @@ function Get-NetworkSettings {
             $config = Get-Content $configFile | ConvertFrom-Json
             Write-BootstrapInfo "Loaded network configuration from: $configFile"
             
-            # Convert PSCustomObject to hashtable
+            # Convert PSCustomObject to hashtable and validate values
             $config.PSObject.Properties | ForEach-Object {
-                $networkConfig[$_.Name] = $_.Value
+                if ($_.Name -notlike "_*") {  # Skip metadata fields
+                    $value = $_.Value
+                    if (-not [string]::IsNullOrWhiteSpace($value)) {
+                        # Validate hostname
+                        if ($_.Name -eq "hostname" -and -not (Test-HostnameValid $value)) {
+                            Write-BootstrapWarning "Invalid hostname in config file: '$value'. Will prompt for valid hostname."
+                        }
+                        # Validate IP addresses
+                        elseif ($_.Name -in @("ipAddress", "gateway", "dnsServer", "subnetMask") -and -not (Test-IPAddress $value)) {
+                            Write-BootstrapWarning "Invalid IP address in config file for $($_.Name): '$value'. Will prompt for valid address."
+                        }
+                        else {
+                            $networkConfig[$_.Name] = $value
+                        }
+                    }
+                }
             }
         } catch {
             Write-BootstrapWarning "Failed to read network configuration file: $($_.Exception.Message)"
@@ -157,10 +234,18 @@ function Get-NetworkSettings {
     # Hostname configuration
     if (-not $networkConfig.ContainsKey("hostname") -or [string]::IsNullOrWhiteSpace($networkConfig["hostname"])) {
         $currentHostname = $env:COMPUTERNAME
-        $hostname = Read-Host "Enter new hostname (current: $currentHostname, ENTER to skip)"
-        if (-not [string]::IsNullOrWhiteSpace($hostname)) {
-            $networkConfig["hostname"] = $hostname
-        }
+        do {
+            $hostname = Read-Host "Enter new hostname (current: $currentHostname, ENTER to skip)"
+            if ([string]::IsNullOrWhiteSpace($hostname)) {
+                break
+            }
+            if (Test-HostnameValid $hostname) {
+                $networkConfig["hostname"] = $hostname
+                break
+            } else {
+                Write-BootstrapWarning "Invalid hostname. Must be 1-15 characters, letters/numbers/hyphens only, cannot start/end with hyphen."
+            }
+        } while ($true)
     }
     
     # Static IP configuration
@@ -168,32 +253,66 @@ function Get-NetworkSettings {
     Write-Host "Leave all fields empty to keep current DHCP configuration" -ForegroundColor Gray
     
     if (-not $networkConfig.ContainsKey("ipAddress") -or [string]::IsNullOrWhiteSpace($networkConfig["ipAddress"])) {
-        $ipAddress = Read-Host "Enter static IP address (e.g., 192.168.1.100, ENTER to skip)"
-        if (-not [string]::IsNullOrWhiteSpace($ipAddress)) {
-            $networkConfig["ipAddress"] = $ipAddress
-            
-            # Get subnet mask
-            if (-not $networkConfig.ContainsKey("subnetMask") -or [string]::IsNullOrWhiteSpace($networkConfig["subnetMask"])) {
-                $subnetMask = Read-Host "Enter subnet mask (default: 255.255.255.0, ENTER for default)"
-                $networkConfig["subnetMask"] = if ([string]::IsNullOrWhiteSpace($subnetMask)) { "255.255.255.0" } else { $subnetMask }
+        do {
+            $ipAddress = Read-Host "Enter static IP address (e.g., 192.168.1.100, ENTER to skip)"
+            if ([string]::IsNullOrWhiteSpace($ipAddress)) {
+                break
             }
-            
-            # Get gateway
-            if (-not $networkConfig.ContainsKey("gateway") -or [string]::IsNullOrWhiteSpace($networkConfig["gateway"])) {
-                $gateway = Read-Host "Enter gateway address (e.g., 192.168.1.1)"
-                if (-not [string]::IsNullOrWhiteSpace($gateway)) {
-                    $networkConfig["gateway"] = $gateway
+            if (Test-IPAddress $ipAddress) {
+                $networkConfig["ipAddress"] = $ipAddress
+                
+                # Get subnet mask
+                if (-not $networkConfig.ContainsKey("subnetMask") -or [string]::IsNullOrWhiteSpace($networkConfig["subnetMask"])) {
+                    do {
+                        $subnetMask = Read-Host "Enter subnet mask (default: 255.255.255.0, ENTER for default)"
+                        if ([string]::IsNullOrWhiteSpace($subnetMask)) {
+                            $networkConfig["subnetMask"] = "255.255.255.0"
+                            break
+                        }
+                        if (Test-IPAddress $subnetMask) {
+                            $networkConfig["subnetMask"] = $subnetMask
+                            break
+                        } else {
+                            Write-BootstrapWarning "Invalid subnet mask format. Please enter a valid IP address format (e.g., 255.255.255.0)."
+                        }
+                    } while ($true)
                 }
-            }
-            
-            # Get DNS server
-            if (-not $networkConfig.ContainsKey("dnsServer") -or [string]::IsNullOrWhiteSpace($networkConfig["dnsServer"])) {
-                $dnsServer = Read-Host "Enter DNS server address (e.g., 8.8.8.8, ENTER to skip)"
-                if (-not [string]::IsNullOrWhiteSpace($dnsServer)) {
-                    $networkConfig["dnsServer"] = $dnsServer
+                
+                # Get gateway
+                if (-not $networkConfig.ContainsKey("gateway") -or [string]::IsNullOrWhiteSpace($networkConfig["gateway"])) {
+                    do {
+                        $gateway = Read-Host "Enter gateway address (e.g., 192.168.1.1)"
+                        if ([string]::IsNullOrWhiteSpace($gateway)) {
+                            Write-BootstrapWarning "Gateway is required for static IP configuration."
+                        } elseif (Test-IPAddress $gateway) {
+                            $networkConfig["gateway"] = $gateway
+                            break
+                        } else {
+                            Write-BootstrapWarning "Invalid gateway address format. Please enter a valid IP address."
+                        }
+                    } while ($true)
                 }
+                
+                # Get DNS server
+                if (-not $networkConfig.ContainsKey("dnsServer") -or [string]::IsNullOrWhiteSpace($networkConfig["dnsServer"])) {
+                    do {
+                        $dnsServer = Read-Host "Enter DNS server address (e.g., 8.8.8.8, ENTER to skip)"
+                        if ([string]::IsNullOrWhiteSpace($dnsServer)) {
+                            break
+                        }
+                        if (Test-IPAddress $dnsServer) {
+                            $networkConfig["dnsServer"] = $dnsServer
+                            break
+                        } else {
+                            Write-BootstrapWarning "Invalid DNS server address format. Please enter a valid IP address."
+                        }
+                    } while ($true)
+                }
+                break
+            } else {
+                Write-BootstrapWarning "Invalid IP address format. Please enter a valid IP address (e.g., 192.168.1.100)."
             }
-        }
+        } while ($true)
     }
     
     return $networkConfig

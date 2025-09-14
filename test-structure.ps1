@@ -69,7 +69,8 @@ foreach ($file in $MainFiles) {
 $ConfigFiles = @(
     @{ Path = ".\config\scoop-apps.json"; Description = "Scoop applications config" },
     @{ Path = ".\config\winget-apps.json"; Description = "WinGet applications config" },
-    @{ Path = ".\config\network-config.json"; Description = "Network configuration config" }
+    @{ Path = ".\config\network-config.json"; Description = "Network configuration config" },
+    @{ Path = ".\config\network-config.example.json"; Description = "Network configuration example" }
 )
 
 foreach ($config in $ConfigFiles) {

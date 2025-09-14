@@ -14,6 +14,7 @@ This directory contains JSON configuration files that define which applications 
 ## Files
 
 - `network-config.json` - Network configuration settings (hostname, IP, DNS, gateway)
+- `network-config.example.json` - Example network configuration with sample values
 - `scoop-apps.json` - CLI applications installed via Scoop
 - `winget-apps.json` - GUI applications installed via WinGet
 

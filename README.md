@@ -134,6 +134,7 @@ You can also run individual setup scripts:
 You can customize network settings by modifying the configuration file or through interactive prompts:
 
 - `config/network-config.json` - Network settings (hostname, IP, DNS, gateway)
+- `config/network-config.example.json` - Example configuration with sample values
 
 #### Example: Custom Network Configuration
 ```json
