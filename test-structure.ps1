@@ -53,7 +53,8 @@ $MainFiles = @(
     @{ Path = ".\README.md"; Description = "README file" },
     @{ Path = ".\scripts\utilities.ps1"; Description = "Utilities script" },
     @{ Path = ".\scripts\setup-scoop.ps1"; Description = "Scoop setup script" },
-    @{ Path = ".\scripts\setup-winget.ps1"; Description = "WinGet setup script" }
+    @{ Path = ".\scripts\setup-winget.ps1"; Description = "WinGet setup script" },
+    @{ Path = ".\scripts\setup-network.ps1"; Description = "Network configuration script" }
 )
 
 foreach ($file in $MainFiles) {
@@ -67,7 +68,9 @@ foreach ($file in $MainFiles) {
 # Test configuration files
 $ConfigFiles = @(
     @{ Path = ".\config\scoop-apps.json"; Description = "Scoop applications config" },
-    @{ Path = ".\config\winget-apps.json"; Description = "WinGet applications config" }
+    @{ Path = ".\config\winget-apps.json"; Description = "WinGet applications config" },
+    @{ Path = ".\config\network-config.json"; Description = "Network configuration config" },
+    @{ Path = ".\config\network-config.example.json"; Description = "Network configuration example" }
 )
 
 foreach ($config in $ConfigFiles) {
@@ -129,6 +132,18 @@ try {
     $TestsPassed++
 } catch {
     Write-BootstrapError "✗ Failed to read WinGet configuration: $($_.Exception.Message)"
+    $TestsFailed++
+}
+
+# Test Network configuration
+try {
+    $NetworkConfig = Get-Content ".\config\network-config.json" | ConvertFrom-Json
+    $settings = $NetworkConfig.PSObject.Properties | Where-Object { $_.Name -notlike "_*" }
+    Write-BootstrapInfo "Network configuration settings found: $($settings.Name -join ', ')"
+    Write-BootstrapSuccess "✓ Network configuration: Valid JSON structure"
+    $TestsPassed++
+} catch {
+    Write-BootstrapError "✗ Failed to read Network configuration: $($_.Exception.Message)"
     $TestsFailed++
 }
 

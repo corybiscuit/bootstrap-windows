@@ -8,6 +8,7 @@ A comprehensive set of scripts designed to configure and install applications on
 ## Features
 
 - 🚀 **Automated Setup**: One-command bootstrap for new Windows machines
+- 🌐 **Network Configuration**: Set hostname, static IP address, DNS server, and gateway
 - 🛠️ **Package Managers**: Installs and configures Scoop and WinGet
 - 📦 **Curated Applications**: Predefined sets of essential, development, and productivity applications
 - ⚙️ **Configurable**: Customizable application lists via JSON configuration files
@@ -33,6 +34,7 @@ A comprehensive set of scripts designed to configure and install applications on
    ```
 
 The script will guide you through an interactive setup where you can:
+- Configure network settings (hostname, static IP, DNS server, gateway)
 - Choose which package managers to use (Scoop, WinGet, or both)
 - Select specific application categories to install
 - Preview all applications in each category
@@ -42,12 +44,19 @@ The script will guide you through an interactive setup where you can:
 
 The bootstrap now provides a guided experience:
 
-### 1. Package Manager Selection
+### 1. Network Configuration
+Configure system network settings:
+- **Hostname** - Set computer name (requires restart)
+- **Static IP** - Configure static IP address instead of DHCP
+- **Gateway** - Set default gateway address  
+- **DNS Server** - Configure primary DNS server
+
+### 2. Package Manager Selection
 Choose which package managers to install:
 - **Scoop** for CLI applications (git, nodejs, python, docker, etc.)
 - **WinGet** for GUI applications (browsers, productivity tools, etc.)
 
-### 2. Category Selection
+### 3. Category Selection
 For each chosen package manager, select from available categories:
 
 **Scoop Categories:**
@@ -63,7 +72,7 @@ For each chosen package manager, select from available categories:
 - `utilities` - System utilities (7-Zip, VLC, WinDirStat)
 - `communication` - Communication tools (Teams, Slack, Discord, Zoom)
 
-### 3. Application Refinement
+### 4. Application Refinement
 For each selected category, you can:
 - **Install all applications** (press ENTER)
 - **Exclude specific applications** (type numbers to remove, e.g., "2,5,7")
@@ -86,6 +95,9 @@ You can also run individual setup scripts:
 ```powershell
 # Check prerequisites before running bootstrap
 .\check-prerequisites.ps1
+
+# Setup only network configuration
+.\scripts\setup-network.ps1
 
 # Setup only Scoop and CLI applications
 .\scripts\setup-scoop.ps1
@@ -117,12 +129,41 @@ You can also run individual setup scripts:
 
 ## Customization
 
+### Network Configuration
+
+You can customize network settings by modifying the configuration file or through interactive prompts:
+
+- `config/network-config.json` - Network settings (hostname, IP, DNS, gateway)
+- `config/network-config.example.json` - Example configuration with sample values
+
+#### Example: Custom Network Configuration
+```json
+{
+  "hostname": "MyComputer",
+  "ipAddress": "192.168.1.100",
+  "subnetMask": "255.255.255.0",
+  "gateway": "192.168.1.1",
+  "dnsServer": "8.8.8.8"
+}
+```
+
+**Network Configuration Options:**
+- **hostname**: Computer name (requires restart to take effect)
+- **ipAddress**: Static IP address (e.g., 192.168.1.100)
+- **subnetMask**: Network subnet mask (default: 255.255.255.0)
+- **gateway**: Default gateway/router address (e.g., 192.168.1.1)
+- **dnsServer**: Primary DNS server (e.g., 8.8.8.8, 1.1.1.1, or your router's IP)
+
+Leave any field empty (`""`) to skip that configuration. If you don't specify an IP address, the system will remain on DHCP.
+
+### Application Configuration
+
 You can customize the applications to install by modifying the JSON configuration files:
 
 - `config/scoop-apps.json` - CLI applications installed via Scoop
 - `config/winget-apps.json` - GUI applications installed via WinGet
 
-### Example: Custom Scoop Configuration
+#### Example: Custom Scoop Configuration
 ```json
 {
   "essential": [
@@ -137,7 +178,7 @@ You can customize the applications to install by modifying the JSON configuratio
 }
 ```
 
-### Example: Custom WinGet Configuration
+#### Example: Custom WinGet Configuration
 ```json
 {
   "my-apps": [
@@ -190,10 +231,12 @@ bootstrap-windows/
 ├── test-structure.ps1            # Configuration validation script
 ├── scripts/
 │   ├── utilities.ps1             # Common utility functions
+│   ├── setup-network.ps1         # Network configuration script
 │   ├── setup-scoop.ps1           # Scoop setup and CLI apps
 │   ├── setup-winget.ps1          # WinGet setup and GUI apps
 │   └── setup-profile.ps1         # PowerShell profile configuration
 ├── config/
+│   ├── network-config.json       # Network configuration settings
 │   ├── scoop-apps.json           # Scoop applications configuration
 │   ├── winget-apps.json          # WinGet applications configuration
 │   └── README.md                 # Configuration help

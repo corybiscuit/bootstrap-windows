@@ -1,0 +1,15 @@
+{
+  "_comment": "Example network configuration with sample values. Copy to network-config.json and modify as needed.",
+  "_description": {
+    "hostname": "New computer hostname (requires restart)",
+    "ipAddress": "Static IP address (e.g., 192.168.1.100)",
+    "subnetMask": "Subnet mask (default: 255.255.255.0)",
+    "gateway": "Default gateway address (e.g., 192.168.1.1)",
+    "dnsServer": "Primary DNS server address (e.g., 8.8.8.8 or 1.1.1.1)"
+  },
+  "hostname": "MyWorkstation",
+  "ipAddress": "192.168.1.100",
+  "subnetMask": "255.255.255.0",
+  "gateway": "192.168.1.1",
+  "dnsServer": "8.8.8.8"
+}

@@ -7,7 +7,36 @@ This directory contains JSON configuration files that define which applications 
 - `scoop-apps.json` - CLI applications installed via Scoop
 - `winget-apps.json` - GUI applications installed via WinGet
 
+# Configuration Files
+
+This directory contains JSON configuration files that define which applications to install and network settings to configure.
+
+## Files
+
+- `network-config.json` - Network configuration settings (hostname, IP, DNS, gateway)
+- `network-config.example.json` - Example network configuration with sample values
+- `scoop-apps.json` - CLI applications installed via Scoop
+- `winget-apps.json` - GUI applications installed via WinGet
+
 ## Format
+
+### Network Configuration (network-config.json)
+```json
+{
+  "hostname": "MyComputer",
+  "ipAddress": "192.168.1.100",
+  "subnetMask": "255.255.255.0",
+  "gateway": "192.168.1.1",
+  "dnsServer": "8.8.8.8"
+}
+```
+
+**Network Settings:**
+- `hostname`: Computer name (requires restart)
+- `ipAddress`: Static IP address (leave empty for DHCP)
+- `subnetMask`: Network mask (default: 255.255.255.0)
+- `gateway`: Default gateway/router IP
+- `dnsServer`: Primary DNS server (e.g., 8.8.8.8, 1.1.1.1)
 
 ### Scoop Apps (scoop-apps.json)
 ```json
