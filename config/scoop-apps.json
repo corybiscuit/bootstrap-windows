@@ -1,0 +1,46 @@
+{
+  "essential": [
+    "git",
+    "curl",
+    "wget",
+    "7zip",
+    "nodejs",
+    "python",
+    "vim"
+  ],
+  "development": [
+    "vscode",
+    "docker",
+    "terraform",
+    "azure-cli",
+    "aws",
+    "kubectl",
+    "helm",
+    "gh",
+    "make",
+    "cmake"
+  ],
+  "utilities": [
+    "grep",
+    "sed",
+    "jq",
+    "yq",
+    "tree",
+    "which",
+    "touch",
+    "less",
+    "find",
+    "fd",
+    "ripgrep",
+    "bat"
+  ],
+  "optional": [
+    "ffmpeg",
+    "imagemagick",
+    "pandoc",
+    "hugo",
+    "go",
+    "rust",
+    "dotnet"
+  ]
+}
